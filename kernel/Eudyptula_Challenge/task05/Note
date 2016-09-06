@@ -1,0 +1,50 @@
+This is Task 05 of the Eudyptula Challenge
+------------------------------------------
+
+Yeah, you survived the coding style mess!  Now, on to some "real"
+things, as I know you are getting bored by these so far.
+
+So, two simple tasks this time around:
+  - Take the kernel module you wrote for task 01, and modify it so that
+      when any USB keyboard is plugged in, the module will be
+	      automatically loaded by the correct userspace hotplug tools (which
+		      are implemented by depmod / kmod / udev / mdev / systemd, depending
+			      on what distro you are using.)
+		    - Again, provide "proof" this all works.
+
+Yes, so simple, and yet, it's a bit tricky.  As a hint, go read chapter
+14 of the book, "Linux Device Drivers, 3rd edition."  Don't worry, it's
+free, and online, no need to go buy anything.
+
+
+===========================================================
+
+Note:
+Solution: Add the usb-keyboard id table for the module and copy it to /libs/module.
+          Kernel will auto load this module when usb keyboard is inserted.
+		  If this module need to register to be a usb driver, the HID driver should be
+		  removed first (Because usb keyboard driver is also a HID driver.
+
+
+Steps:   1. Add the below line to the driver (If the usb driver is not needed, don't add hello_driver part)
+static struct usb_device_id hello_id_table [] = {
+{ USB_INTERFACE_INFO(USB_INTERFACE_CLASS_HID,
+	USB_INTERFACE_SUBCLASS_BOOT,
+	USB_INTERFACE_PROTOCOL_KEYBOARD) },
+{ }
+};
+MODULE_DEVICE_TABLE (usb, hello_id_table);
+
+static struct usb_driver hello_driver = {
+	.name = "hello_driver",
+	.id_table = hello_id_table,
+	.probe =   usb_hello_probe,
+	.disconnect =   usb_disconnect,
+
+};
+module_usb_driver(hello_driver);
+
+
+2. copy the ko file to /libs/module/kernel/driver then execute "sudo depmod -a"
+3. remove hid related drivers: sudo rmmod usb-hid/hid/hid-generic
+   If the dirver are not removed, the usb probe/disconnect function won't be called.
