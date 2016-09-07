@@ -1,0 +1,18 @@
+I install ubuntu 16.04 on a virtual machine to do the kernel test.
+
+The below is the note about how to build cumstomize kernel for ubuntu.
+
+
+1. download source from linux main truck.
+2. you can find the config file under /boot/. copy the config file
+   to be the .config under kernel source directory.
+3. make oldconfig; make meunconfig
+4. lsmod > mylsmod,  it will generate lsmod file
+   make LSMOD=mylsmod localmodconfig
+5. make -j `getconf _NPROCESSORS_ONLN` deb-pkg LOCALVERSION=-custom
+6. the .deb kernel and headers will be generated.
+7. replace the kernel and headers then reboot
+   dpkg -i xxxxx-imagexxxx.deb
+   dpkg -i xxxx-headerxxxx.deb
+   reboot
+
