@@ -11,19 +11,7 @@
 
 static ssize_t hello_read (struct file *filp, char __user *buf, size_t count, loff_t *ptr)
 {
-	int read_len;
-
-	read_len = ID_LEN - *ptr;
-	if (read_len <= 0)
-		return 0;
-
-	if (count < read_len)
-		return -EINVAL;
-
-	if (copy_to_user(buf, MY_ID + *ptr, read_len))
-		return -EFAULT;
-	*ptr += read_len;
-	return read_len;
+	return simple_read_from_buffer(buf, count, ptr, MY_ID, ID_LEN);
 }
 
 static ssize_t hello_write(struct file *file, const char __user *buf, size_t count, loff_t * ppos)
