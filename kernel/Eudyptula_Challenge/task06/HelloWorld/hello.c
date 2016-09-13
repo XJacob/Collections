@@ -20,8 +20,8 @@ static ssize_t hello_write(struct file *file, const char __user *buf, size_t cou
 
 	if (count != ID_LEN)
 		return -EINVAL;
-	if (copy_from_user(id_buf, buf, ID_LEN))
-		return -EFAULT;
+	if (simple_write_to_buffer(id_buf, ID_LEN, ppos, buf, count) != ID_LEN)
+		return -EINVAL;
 	if (strncmp(id_buf, buf, ID_LEN))
 		return -EINVAL;
 	return ID_LEN;
