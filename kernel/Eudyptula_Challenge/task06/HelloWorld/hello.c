@@ -17,14 +17,16 @@ static ssize_t hello_read (struct file *filp, char __user *buf, size_t count, lo
 static ssize_t hello_write(struct file *file, const char __user *buf, size_t count, loff_t * ppos)
 {
 	unsigned char id_buf[ID_LEN];
+	ssize_t rc;
 
 	if (count != ID_LEN)
 		return -EINVAL;
-	if (simple_write_to_buffer(id_buf, ID_LEN, ppos, buf, count) != ID_LEN)
-		return -EINVAL;
+	rc = simple_write_to_buffer(id_buf, ID_LEN, ppos, buf, count);
+	if (rc < 0)
+		return rc;
 	if (strncmp(id_buf, buf, ID_LEN))
 		return -EINVAL;
-	return ID_LEN;
+	return rc;
 }
 
 static const struct file_operations hello_fps = {
