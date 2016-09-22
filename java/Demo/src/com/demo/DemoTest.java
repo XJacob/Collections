@@ -5,7 +5,7 @@ import com.demo.DemoUnit.*;
 public class DemoTest {
 	
 	DemoFunction Units[] = {
-		new Print(),
+		new Print(), new basic(),
 	};
 	
 	void test_start() {
