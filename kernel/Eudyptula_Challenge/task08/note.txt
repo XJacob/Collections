@@ -1,0 +1,154 @@
+This is Task 08 of the Eudyptula Challenge
+------------------------------------------
+
+We will come back to the linux-next kernel in a later exercise, so don't
+go and delete that directory, you'll want it around.  But enough of
+building kernels, let's write more code!
+
+This task is much like the 06 task with the misc device, but this time
+we are going to focus on another user/kernel interface, debugfs.  It is
+rumored that the creator of debugfs said that there is only one rule for
+debugfs use": "There are no rules when using debugfs."  So let's take
+them up on that offer and see how to use it.
+
+debugfs should be mounted by your distro in /sys/kernel/debug/.  If it
+isn't, then you can mount it with the line:
+mount -t debugfs none /sys/kernel/debug/
+
+Make sure it is enabled in your kernel, with the CONFIG_DEBUG_FS option,
+	 you will need it for this task.
+
+	 The tasks, in specifics are:
+
+	 - Take the kernel module you wrote for task 01, and modify it to
+	 create a debugfs subdirectory called "eudyptula".  In that
+	 directory, create the virtual file called "id".
+	 - This "id" file, operates just like it did for example 06, and uses
+	 the same logic there, the file is to be readable and writable by any
+	 user.
+	 - Submit this task as the first email.
+	 - Base your work on this submission, and create a new debugfs file
+	 called "jiffies".
+	 - This "jiffies" file is to be read-only by any user, and when read,
+	 should return the current value of the jiffies kernel timer.
+	 - Submit this result as a patch against the first email.
+	 - Base your work again on that submission, and create a final debugfs
+	 file called "foo".
+	 - The file "foo" needs to be writable only by root, but readable by
+	 anyone.  When writing to it, the value must be stored, up to one
+	 page of data.  When read, which can be done by any user, the value
+	 that is stored in it must be returned.  Properly handle the fact
+	that someone could be reading from the file while someone else is
+writing to it (oh, a locking hint!)
+	- Submit this result as a patch against the second email.
+	- When the module is unloaded, all of the debugfs files are cleaned
+	up, and any memory allocated is freed, for all submissions.
+	- Provide some "proof" this all works in the first email.
+
+So, for this task, I expect to see 3 emails, all "linked" somehow, in my
+mailbox.  They should look something like this:
+
+	[aa1d2514c1a6] Task 08 results
+	├─>[aa1d2514c1a6] [PATCH 01/02] Task 08: add jiffies file
+	└─>[aa1d2514c1a6] [PATCH 02/02] Task 08: add foo file
+
+	Or, even better:
+	[aa1d2514c1a6] Task 08 results
+	└─>[aa1d2514c1a6] [PATCH 01/02] Task 08: add jiffies file
+		└─>[aa1d2514c1a6] [PATCH 02/02] Task 08: add foo file
+
+Hint, look at using 'git send-email' as a way to send these files out.
+
+
+================================================================================
+1. git send email
+git send-email --to=little@eudyptula-challenge.org --compose --from=jacoblee.box.tw@gmail.com --thread --chain-reply-to --in-reply-to=20161003083547.GA16331@drc_rf.com *.patch
+
+
+2. git format patch
+git format-patch -2 --subject-prefix="aa1d2514c1a6][PATCH"
+
+
+3. proof
+
+root@jacob-VirtualBox:/home/jacob# cd /sys/kernel/debug/eudyptula/
+root@jacob-VirtualBox:/sys/kernel/debug/eudyptula# ls -al
+total 0
+drwxr-xr-x  2 root root 0  十   3 16:31 .
+drwx------ 24 root root 0  十   3 16:29 ..
+-rw-r--r--  1 root root 0  十   3 16:31 foo
+-rw-rw-rw-  1 root root 0  十   3 16:31 id
+-r--r--r--  1 root root 0  十   3 16:31 jiffies
+
+root@jacob-VirtualBox:/sys/kernel/debug/eudyptula# cat id
+aa1d2514c1a6root@jacob-VirtualBox:/sys/kernel/debug/eudyptula# echo "1234" > id
+bash: echo: write error: Invalid argument
+root@jacob-VirtualBox:/sys/kernel/debug/eudyptula# echo "aa1d2514c1a6" > id
+
+root@jacob-VirtualBox:/sys/kernel/debug/eudyptula#
+root@jacob-VirtualBox:/sys/kernel/debug/eudyptula# cat jiffies
+4294939514
+root@jacob-VirtualBox:/sys/kernel/debug/eudyptula# cat jiffies
+4294940188
+
+root@jacob-VirtualBox:/sys/kernel/debug/eudyptula# echo "1234567890" > foo
+root@jacob-VirtualBox:/sys/kernel/debug/eudyptula# cat foo
+1234567890
+
+root@jacob-VirtualBox:/sys/kernel/debug/eudyptula#
+root@jacob-VirtualBox:/sys/kernel/debug/eudyptula# dd if=/dev/zero of=/sys/kernel/debug/eudyptula/foo bs=4099 count=1
+dd: error writing '/sys/kernel/debug/eudyptula/foo': No space left on device
+1+0 records in
+0+0 records out
+4096 bytes (4.1 kB, 4.0 KiB) copied, 0.000954582 s, 4.3 MB/s
+
+root@jacob-VirtualBox:/sys/kernel/debug/eudyptula# cd /home/jacob/
+root@jacob-VirtualBox:/home/jacob#
+root@jacob-VirtualBox:/home/jacob# cat read_test.sh
+#!/bin/bash
+
+for i in {1..10000}
+do
+	dd if=/sys/kernel/debug/eudyptula/foo of=/dev/null count=1 bs=4096 > /dev/null 2>&1
+	done;
+
+root@jacob-VirtualBox:/home/jacob#
+root@jacob-VirtualBox:/home/jacob# cat write_test.sh
+#!/bin/bash
+
+	for i in {1..10000}
+	do
+		dd if=/home/jacob/test_file of=/sys/kernel/debug/eudyptula/foo count=1 bs=4096 > /dev/null 2>&1
+		done;
+
+root@jacob-VirtualBox:/home/jacob#
+root@jacob-VirtualBox:/home/jacob# for i in {1..5}
+> do
+> /home/jacob/read_test.sh &
+> /home/jacob/write_test.sh &
+> done
+[1] 1196
+[2] 1197
+[3] 1198
+[4] 1199
+[5] 1200
+[6] 1201
+[7] 1202
+[8] 1203
+[9] 1204
+[10] 1205
+
+root@jacob-VirtualBox:/home/jacob# dmesg | tail -n 10
+[   70.032386] hello: module verification failed: signature and/or required key missing - tainting kernel
+[   70.033591] Hello World init!
+[  596.457406] foo is writing now, waiting..
+[  596.459831] foo is writing now, waiting..
+[  596.460240] foo is writing now, waiting..
+[  596.460646] foo is writing now, waiting..
+[  623.858062] foo is writing now, waiting..
+[  623.858883] foo is writing now, waiting..
+[  623.859284] foo is writing now, waiting..
+[  629.840501] foo is writing now, waiting..
+
+
+

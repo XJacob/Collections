@@ -1,0 +1,114 @@
+From 640f106c3c57ba5c61345c25d4755f057c056c6b Mon Sep 17 00:00:00 2001
+From: "jacob.lee" <jacoblee.box.tw@gmail.com>
+Date: Thu, 29 Sep 2016 16:27:29 +0900
+Subject: Task 08 results
+
+---
+ .../Eudyptula_Challenge/task08/HelloWorld/Makefile | 15 +++++
+ .../Eudyptula_Challenge/task08/HelloWorld/hello.c  | 72 ++++++++++++++++++++++
+ 2 files changed, 87 insertions(+)
+ create mode 100644 kernel/Eudyptula_Challenge/task08/HelloWorld/Makefile
+ create mode 100644 kernel/Eudyptula_Challenge/task08/HelloWorld/hello.c
+
+diff --git a/kernel/Eudyptula_Challenge/task08/HelloWorld/Makefile b/kernel/Eudyptula_Challenge/task08/HelloWorld/Makefile
+new file mode 100644
+index 0000000..ec1dd9d
+--- /dev/null
++++ b/kernel/Eudyptula_Challenge/task08/HelloWorld/Makefile
+@@ -0,0 +1,15 @@
++# Makefile for hello world module
++#
++PWD := $(shell pwd)
++KVERSION := 4.7.0-eudyptula-custom
++KERNEL_DIR = /home/jacob/kernel-test/kernel/linux/
++
++MODULE_NAME = hello
++obj-m      := $(MODULE_NAME).o
++CFLAGS_$(MODULE_NAME).o := -DDEBUG
++
++
++all:
++	make -C $(KERNEL_DIR) M=$(PWD) modules
++clean:
++	make -C $(KERNEL_DIR) M=$(PWD) clean
+diff --git a/kernel/Eudyptula_Challenge/task08/HelloWorld/hello.c b/kernel/Eudyptula_Challenge/task08/HelloWorld/hello.c
+new file mode 100644
+index 0000000..16991b2
+--- /dev/null
++++ b/kernel/Eudyptula_Challenge/task08/HelloWorld/hello.c
+@@ -0,0 +1,72 @@
++#include <linux/init.h>
++#include <linux/printk.h>
++#include <linux/module.h>
++#include <linux/cdev.h>
++#include <linux/fs.h>
++#include <linux/miscdevice.h>
++#include <linux/debugfs.h>
++#include <asm/uaccess.h>
++
++#define MY_ID "aa1d2514c1a6"
++#define ID_LEN sizeof(MY_ID)
++
++static struct dentry *hello_dir;
++static struct dentry *hello_id;
++
++static ssize_t hello_read_id(struct file *filp, char __user *buf, size_t count, loff_t *ptr)
++{
++	return simple_read_from_buffer(buf, count, ptr, MY_ID, ID_LEN);
++}
++
++static ssize_t hello_write_id(struct file *file, const char __user *buf, size_t count, loff_t * ppos)
++{
++	unsigned char id_buf[ID_LEN];
++	ssize_t rc;
++
++	if (count != ID_LEN)
++		return -EINVAL;
++	rc = simple_write_to_buffer(id_buf, ID_LEN, ppos, buf, count);
++	if (rc < 0)
++		return rc;
++	if (strncmp(id_buf, buf, ID_LEN))
++		return -EINVAL;
++	return rc;
++}
++
++static const struct file_operations debugfs_hello_id = {
++	.read           = hello_read_id,
++	.write          = hello_write_id,
++};
++
++static int __init hello_init(void)
++{
++	pr_debug("Hello World init!\n");
++
++	hello_dir = debugfs_create_dir("eudyptula", NULL);
++	if (!hello_dir)
++		return -ENOMEM;
++
++	hello_id = debugfs_create_file("id", S_IRUGO | S_IWUGO, hello_dir, NULL,
++				&debugfs_hello_id);
++	if (!hello_id)
++		goto error;
++	return 0;
++
++error:
++	debugfs_remove_recursive(hello_dir);
++	return -ENOMEM;
++}
++
++static void __exit hello_exit(void)
++{
++	pr_debug("Hello World exit!\n");
++	if (hello_dir)
++		debugfs_remove_recursive(hello_dir);
++}
++
++module_init(hello_init);
++module_exit(hello_exit);
++
++MODULE_AUTHOR("Jacob Lee <jacoblee.box.tw@gmail.com> ");
++MODULE_DESCRIPTION("Hello World driver");
++MODULE_LICENSE("GPL");
+-- 
+1.9.1
+
