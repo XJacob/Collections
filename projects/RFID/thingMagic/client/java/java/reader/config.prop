@@ -1,0 +1,60 @@
+
+#uri = NULL
+#power = 3000
+#tid = 0
+#antenna = 1,2,3,4
+#command_en = 1
+#---config default value---
+
+#uri is tcp link information EX: tcp://+your IP + :port number
+uri=tcp://172.16.8.88:50005
+#power is TX power, ex:3000 = 30dBm
+power=1000
+#antenna should be 1~4, EX antenna = 1,2,4
+antenna=1,2
+#demo program running time(seconds), if sleep <0 , it would continous running.
+sleep=-1
+#   //  Region Settings //
+#	/** Unspecified region                = UNSPEC
+#	/** North America                     = NA
+#	/** European Union   		          = EU
+#	/** Korea              				  = KR
+#	/** India              				  = IN
+#	/** Japan              				  = JP
+#	/** People's Republic of China 		  = PRC
+#	/** European Union 2  				  = EU2
+#	/** European Union 3 				  = EU3
+#	/** Korea 							  = KR2
+#	/** People's Republic of China(840MHZ)= PRC2
+#	/** Australia 						  = AU
+#	/** New Zealand !!EXPERIMENTAL!! 	  = NZ
+#	/** Reduced FCC region 				  = REDICED_FCC
+#	/** Open 							  = OPEN
+region=NZ
+#HopTable ex:[925500,924750,923000,923500,922750,924500,926750,923750,926500,926250,927250,923250,925250,924000,926000,927000,924250,925750,925000]
+hoptable=
+#HopTime   ex:300 = 300ms, default is 375ms
+hoptime=
+#command_en = 1 shows that using comman lined to inventory and no using any config.prop settings.
+command_en=0
+#tid = 1 would enable tid read, otherwise, tid = 0 would disable tid read.
+tid=0
+#fast search enable or disable (1 or 0) to increase tag read counts
+fast_search=0
+#temperature enable or disable (1 or 0) to show current module temperature
+temperature=0
+#Gen2_Protocol
+#password is a 32-bit unsigned value.
+gen2_accesspassword=0
+#if gen2_Q=DynamicQ, Q is dynamic; else gen2_Q=StaticQ(5),Q is static & Q = 5.
+gen2_Q=DynamicQ
+#Four choices:FM0,M2,M4,M8
+gen2_tagEncoding=M4
+#Four choices:S0,S1,S2,S3
+gen2_session=S0
+#Four choices:A,B,AB,BA
+gen2_target=AB
+#Four choices:250kHz,320kHz,640kHz
+gen2_blf=250kHz
+#Four choices:25us,12.5us,6.25us
+gen2_tari=25us

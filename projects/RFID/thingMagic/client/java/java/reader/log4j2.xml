@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+version: 1.1
+copyright(c) - www.delta.com.tw
+Log4j 2: http://logging.apache.org/log4j/2.x/manual/index.html
+Configuration: http://logging.apache.org/log4j/2.x/manual/configuration.html
+Appenders: http://logging.apache.org/log4j/2.x/manual/appenders.html
+Layouts: http://logging.apache.org/log4j/2.x/manual/layouts.html
+-->
+<Configuration monitorInterval="30" status="warn" strict="true">
+	<Properties>
+		<Property name="log-path">./logs</Property>
+	</Properties>
+	
+	<Appenders>
+		<Console name="console" target="SYSTEM_OUT">
+			<PatternLayout pattern="%t %d %-5p [%C.%M:%L] - %m%n" />
+		</Console>
+		
+		<RollingFile name="rca" fileName="${log-path}/rca-aggregator.log"
+			filePattern="${log-path}/$${date:yyyy-MM-dd}/rca-aggregator-%d{yyyy-MM-dd_HH}.%i.log">
+			<ThresholdFilter level="debug" onMatch="ACCEPT" onMismatch="DENY" />
+			<PatternLayout pattern="%t %d %-5p [%C.%M:%L] - %m%n" />
+			<Policies>
+				<OnStartupTriggeringPolicy />
+				<TimeBasedTriggeringPolicy interval="1" modulate="true" />
+				<SizeBasedTriggeringPolicy size="20 MB" />
+			</Policies>
+		</RollingFile>
+		<RollingFile name="rca-err" fileName="${log-path}/rca-aggregator-err.log"
+			filePattern="${log-path}/$${date:yyyy-MM-dd}/rca-aggregator-err-%d{yyyy-MM-dd_HH}.%i.log">
+			<ThresholdFilter level="warn" onMatch="ACCEPT" onMismatch="DENY" />
+			<PatternLayout pattern="%t %d %-5p [%C.%M:%L] - %m%n" />
+			<Policies>
+				<OnStartupTriggeringPolicy />
+				<TimeBasedTriggeringPolicy interval="1" modulate="true" />
+				<SizeBasedTriggeringPolicy size="20 MB" />
+			</Policies>
+		</RollingFile>		
+	</Appenders>
+	
+	<Loggers>
+		<Root level="info" additivity="false">
+			<AppenderRef ref="rca" />
+		</Root>
+		<Logger name="com.delta" level="debug" additivity="false">
+			<AppenderRef ref="rca" level="info" />
+			<AppenderRef ref="rca-err" level="warn" />
+		</Logger>
+	</Loggers>
+</Configuration>
