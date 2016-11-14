@@ -1,0 +1,25 @@
+From 8df0795d69f6643e1c23f92f350315ad0ffa08bd Mon Sep 17 00:00:00 2001
+From: "jacob.lee" <jacoblee.box.tw@gmail.com>
+Date: Fri, 30 Sep 2016 15:49:02 +0900
+Subject: [aa1d2514c1a6][PATCH 1/2] Task 08: add jiffies file
+
+---
+ kernel/Eudyptula_Challenge/task08/HelloWorld/hello.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/kernel/Eudyptula_Challenge/task08/HelloWorld/hello.c b/kernel/Eudyptula_Challenge/task08/HelloWorld/hello.c
+index 16991b2..097b087 100644
+--- a/kernel/Eudyptula_Challenge/task08/HelloWorld/hello.c
++++ b/kernel/Eudyptula_Challenge/task08/HelloWorld/hello.c
+@@ -50,6 +50,8 @@ static int __init hello_init(void)
+ 				&debugfs_hello_id);
+ 	if (!hello_id)
+ 		goto error;
++
++	debugfs_create_u32("jiffies", S_IRUGO, hello_dir, (u32 *)&jiffies);
+ 	return 0;
+ 
+ error:
+-- 
+1.9.1
+

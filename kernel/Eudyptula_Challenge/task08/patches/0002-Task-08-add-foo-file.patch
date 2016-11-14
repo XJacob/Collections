@@ -1,0 +1,92 @@
+From 8c7c19c841c51f2534809d085acddf03da470484 Mon Sep 17 00:00:00 2001
+From: "jacob.lee" <jacoblee.box.tw@gmail.com>
+Date: Mon, 3 Oct 2016 16:30:20 +0900
+Subject: [aa1d2514c1a6][PATCH 2/2] Task 08: add foo file
+
+---
+ .../Eudyptula_Challenge/task08/HelloWorld/hello.c  | 43 ++++++++++++++++++++++
+ 1 file changed, 43 insertions(+)
+
+diff --git a/kernel/Eudyptula_Challenge/task08/HelloWorld/hello.c b/kernel/Eudyptula_Challenge/task08/HelloWorld/hello.c
+index 097b087..315b55a 100644
+--- a/kernel/Eudyptula_Challenge/task08/HelloWorld/hello.c
++++ b/kernel/Eudyptula_Challenge/task08/HelloWorld/hello.c
+@@ -12,6 +12,7 @@
+ 
+ static struct dentry *hello_dir;
+ static struct dentry *hello_id;
++static struct dentry *hello_foo;
+ 
+ static ssize_t hello_read_id(struct file *filp, char __user *buf, size_t count, loff_t *ptr)
+ {
+@@ -33,11 +34,44 @@ static ssize_t hello_write_id(struct file *file, const char __user *buf, size_t
+ 	return rc;
+ }
+ 
++static unsigned char buffer[PAGE_SIZE];
++static struct mutex lock;
+ static const struct file_operations debugfs_hello_id = {
+ 	.read           = hello_read_id,
+ 	.write          = hello_write_id,
+ };
+ 
++static ssize_t hello_read_foo(struct file *filp, char __user *buf, size_t count, loff_t *ptr)
++{
++	ssize_t rc;
++
++	if (mutex_is_locked(&lock))
++		pr_info("foo is writing now, waiting..");
++	mutex_lock(&lock);
++
++	rc = simple_read_from_buffer(buf, count, ptr, buffer, PAGE_SIZE);
++
++	mutex_unlock(&lock);
++	return rc;
++}
++
++static ssize_t hello_write_foo(struct file *file, const char __user *buf, size_t count, loff_t * ppos)
++{
++	ssize_t rc;
++	mutex_lock(&lock);
++
++	memset(buffer, 0, PAGE_SIZE);
++	rc = simple_write_to_buffer(buffer, PAGE_SIZE, ppos, buf, count);
++
++	mutex_unlock(&lock);
++	return rc;
++}
++
++static const struct file_operations debugfs_hello_foo = {
++	.read           = hello_read_foo,
++	.write          = hello_write_foo,
++};
++
+ static int __init hello_init(void)
+ {
+ 	pr_debug("Hello World init!\n");
+@@ -52,6 +86,13 @@ static int __init hello_init(void)
+ 		goto error;
+ 
+ 	debugfs_create_u32("jiffies", S_IRUGO, hello_dir, (u32 *)&jiffies);
++
++	hello_foo = debugfs_create_file("foo", S_IRUGO | S_IWUSR, hello_dir, NULL,
++				&debugfs_hello_foo);
++	if (!hello_foo)
++		goto error;
++
++	mutex_init(&lock);
+ 	return 0;
+ 
+ error:
+@@ -64,6 +105,8 @@ static void __exit hello_exit(void)
+ 	pr_debug("Hello World exit!\n");
+ 	if (hello_dir)
+ 		debugfs_remove_recursive(hello_dir);
++
++	mutex_destroy(&lock);
+ }
+ 
+ module_init(hello_init);
+-- 
+1.9.1
+
