@@ -65,3 +65,14 @@ for num in $(seq 1 10); do
 	echo -n "$num"
 done
 
+################ misc
+set -e  # exit the script if any statement return false
+set +e
+
+
+# run the whole script under init, sort by the file name
+find ${TT_SYSTEM_PATH}/etc/init/ -type f | sort | xargs -I{} sh -c "echo {} && {}"
+
+echo $?    # the result of the last exected command
+echo $@    # the whole parameters
+echo $#    # the number of the parameters
